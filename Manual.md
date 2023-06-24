@@ -11,6 +11,7 @@ Oletame et meil on objekt mille nimi on auto.
 kui vaadata peale siis me näeme lihtsalt autot aga kui me hakkame lähemalt vaatama siis auto koosneb ratastest ustest värvist jne jne. Programeerimises on täpselt sama lugu ma saame luua objekti millel anname nime ja määrame millest see objekt või asi koosneb.
 
 </p>
+
 #### Näide Sorteerimis koodist objektil Data
 
 ```python
