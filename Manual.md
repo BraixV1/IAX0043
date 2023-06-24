@@ -12,7 +12,8 @@ kui vaadata peale siis me näeme lihtsalt autot aga kui me hakkame lähemalt vaa
 
 </p>
 #### Näide Sorteerimis koodist objektil Data
-``` python
+
+```python
 class Data:
 
     def __init__(self, code: str, postision: str, version: str = None) -> None:
@@ -37,8 +38,8 @@ class Data:
         if isinstance(other, Data):
             return self.code == other.getCode  and self.version == other.getVersion and self.positsion == other.getPosition
         return False
-```
 
+```
 <p>
  Siin me ütleme arvutile et on olemas objekt nimega Data milles me anname talle kaasa konstruktori kus ma määrame millest see objekt koosneb.
 </p>
