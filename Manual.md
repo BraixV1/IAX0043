@@ -341,9 +341,11 @@ def CheckFileReadble() -> bool:
 
 # APPI MUL FILE EI TÖÖTA MA EI SAA SEDA KÄIMA
 
-Arvatavasti sa ei saa seda file käima siis probleem on selles et sul ei ole pythoni
+Arvatavasti sa ei saa seda file käima siis probleem on selles et sul ei ole pythoni ja kui on siis ei ole seda moodulit mis võimaldab lugeda xlsx file
 
-võta lahti visual studios terminal ja kirjuta
+[pythoni allalaadimis link](https://www.python.org)
+
+Selleks et saada moodulit võta lahti visual studios terminal ja kirjuta
 
 ```shell
 pip install openpyxl
