@@ -339,3 +339,14 @@ def CheckFileReadble() -> bool:
 
 ```
 
+# APPI MUL FILE EI TÖÖTA MA EI SAA SEDA KÄIMA
+
+Arvatavasti sa ei saa seda file käima siis probleem on selles et sul ei ole pythoni
+
+võta lahti visual studios terminal ja kirjuta
+
+```shell
+pip install openpyxl
+```
+
+kui ei saa visual studiot kasutada kasuta cmd(command prompt)
