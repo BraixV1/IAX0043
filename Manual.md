@@ -252,3 +252,90 @@ Nüüd me loome 2 Database 1 mis salvestab esimese file andmed ja teine mis salv
 3) hakkame iga rida kirjutama exceli file ja kuna me teame et nüüd mis järjekorras on asjad sest ennem said need ise tehtud siis teame täpselt mis indexil midagi asub vaatame kas koodi ja versiooni indexitel olevad väärtused on samad või ei kui ei ole siis me paneme selle exceli file punasena kui mitte siis mustana.
 
 Edu selle koodi mõistmisega kallis haha
+
+### Muutused koodis 25 Juuni 2023
+
+Hurra mulle saabus kell 1 öösel vaimu valgustus ja otsustasin selle koha tööle panna. Mis selle käigus siis muutus?
+
+Muutused
+
+```python
+# For When working with CSV files
+def getData(self, NameOfTheFIle: str) -> None:
+    # Opens the file.
+    with open(NameOfTheFIle, encoding='utf-8-sig',) as csv_file:
+
+        # Saves the file as a csv.reader object and separates the lines in file to lists of strings which were separated by the delimiter.
+        csv_reader = list(csv.reader(csv_file, delimiter=";"))
+        self.DatabaseFiller(csv_reader)
+# When working for XLSX files
+def getDataWithXlsx(self, NameOfTheFile: str) -> None:
+
+    workbook = load_workbook(NameOfTheFile)
+    sheet = workbook.active
+
+    data = []
+    for row in sheet.iter_rows(values_only=True):
+        data.append(list(row))
+    self.DatabaseFiller(data)
+
+
+def DatabaseFiller(self, items: list) -> None:
+    if "Versioon" in items[0]:
+        versionIndex =  items[0].index("Versioon")
+    else:
+        versionIndex =  None
+    koodIndex = items[0].index("Kood")
+    positsioonIndex = items[0].index("Positsioon")
+    for row in items[1:]:
+        positsions = row[positsioonIndex].split(", ")
+        for positsion in positsions:
+            if versionIndex == None:
+                item = Data(row[koodIndex], positsion)    
+            else:
+                item = Data(row[koodIndex], positsion, row[versionIndex])
+            self.add(item)
+```
+lõhkusin ära funktsiooni mis oli mõeldud csv file lugemise osa ja tegin sellest funktsiooni DataBaseFiller. Selle funktsiooni mõte on leida tabelist tulba indexid ja siis täita andmebaas andme objektidega.
+
+Lisasin juurde funktsiooni GetDataWithXlsx nagu nimi viitab siis nüüd oskab see programm töödelda peale CSV fileda ka XLSX file.
+
+Juurde panin ka hunniku kontrolle et veenduda et keegi saa koodi kokku jooksutada ilma et ta ütleks et keegi tegi midagi valesti.
+
+```python
+if file_first.split(".")[-1] == "csv":
+    file1 = DataBase()
+    file1.getData(file_first)
+    fileUnchanged1 = file1.getDataBase()
+
+
+    file2 = DataBase()
+    file2.getData(file_second)
+    fileUnchanged2 = file2.getDataBase()
+if file_first.split(".")[-1] == "xlsx":
+    file1 = DataBase()
+    file1.getDataWithXlsx(file_first)
+    fileUnchanged1 = file1.getDataBase()
+
+
+    file2 = DataBase()
+    file2.getDataWithXlsx(file_second)
+    fileUnchanged2 = file2.getDataBase()
+```
+
+see koodi tükk Magic meetodis karanteerib selle et kui sisestakse csv file siis kasutatakse csv file lugemis funktsiooni ja kui xlsx siis kaustatakse xslx file lugemis funktsiooni
+
+Kui tekib küsimus et miks ainult kontrollitakse kas esimene on xlsx või csv siis vastus selle on et kuna graafiline liides ei lase seda funktsiooni käivitada kui mõlemad filed ei ole csv või xlsx annab vea teate.
+
+Kuna ma ei tahtnud teha koodi mingeid kahtlaseid if lauseid millest on raske aru saada siis tegin funktsioonid mille nimi ütleb mida need kontrollivad
+
+```py
+def CheckFileTypes() -> bool:
+    return entry1.get().split(".")[-1] == entry2.get().split(".")[-1]
+
+def CheckFileReadble() -> bool:
+    types = ["csv", "xlsx"]
+    return entry1.get().split(".")[-1] in types and entry2.get().split(".")[-1] in types
+
+```
+
