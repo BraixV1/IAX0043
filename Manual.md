@@ -328,7 +328,7 @@ see koodi tükk Magic meetodis karanteerib selle et kui sisestakse csv file siis
 Kui tekib küsimus et miks ainult kontrollitakse kas esimene on xlsx või csv siis vastus selle on et kuna graafiline liides ei lase seda funktsiooni käivitada kui mõlemad filed ei ole csv või xlsx annab vea teate.
 
 Kuna ma ei tahtnud teha koodi mingeid kahtlaseid if lauseid millest on raske aru saada siis tegin funktsioonid mille nimi ütleb mida need kontrollivad
-
+    
 ```py
 def CheckFileTypes() -> bool:
     return entry1.get().split(".")[-1] == entry2.get().split(".")[-1]
@@ -338,6 +338,11 @@ def CheckFileReadble() -> bool:
     return entry1.get().split(".")[-1] in types and entry2.get().split(".")[-1] in types
 
 ```
+
+# Muudatused 28. Juuni
+
+DatabaseFille funktsioon sai reworki. Enam ei eelda et tabel algab esimeselt realt vaid see otsib ise tabeli üles failist ja asub sellega tööle.
+Osadel ei ole positsiooni nüüd iga asja jaoks millel pole positsiooni saab omale positsiooni None + number mitmes positsioonita rida see on. Samuti suudab programm nüüd vahele jätta tühje ridu. Samuti on tehtud uued vea kontrollid et kui filest tabelit programm ei suuda leida siis ta annab teada. Lisasin mõned kommentaarid äkkis on lihtsam aru saada. Eemaldasin __eq__ meetodid mis ei täitnud mingit eesmärki. samuti repr meetodi kuna seda ei ole peale debuggimise vaja
 
 # APPI MUL FILE EI TÖÖTA MA EI SAA SEDA KÄIMA
 

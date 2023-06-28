@@ -4,15 +4,12 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, PatternFill
 import tkinter as tk
 
-class Data:
+class Data: # Every line of the file will be made into data class which we use later
 
     def __init__(self, code: str, postision: str, version: str = None) -> None:
         self.code = code
         self.version = version
         self.positsion = postision
-
-    def __repr__(self) -> str:
-        return f"Kood: {self.code} \n kogus: {self.amount} \n Versioon: {self.version} \n Positsioon: {self.positsion}"
 
     def getCode(self) -> str:
         return self.code
@@ -24,21 +21,13 @@ class Data:
     def getPosition(self) -> str:
         return self.positsion
     
-    def __eq__(self, other) -> bool:
-        if isinstance(other, Data):
-            return self.code == other.getCode  and self.version == other.getVersion and self.positsion == other.getPosition
-        return False
-
     
-class DataBase:
+class DataBase: # This where we will hold out data
 
 
     def __init__(self) -> None:
         self.info = []
 
-
-    def  __repr__(self) -> str:
-        return str(self.info)
     
     def add(self, item: Data):
         self.info.append(item)
@@ -51,7 +40,7 @@ class DataBase:
             self.info.extend(other.getDataBase())
         return self
     
-    def getPositions(self) -> list:
+    def getPositions(self) -> list: # This method returns all positsion it has in it its database used for later in magic command
         result = []
         for item in self.info:
             if item.getPosition() not in result:
@@ -59,16 +48,20 @@ class DataBase:
         return result
 
 
-    # For When working with CSV files
+    # When working with CSV files
     def getData(self, NameOfTheFIle: str) -> None:
         # Opens the file.
         with open(NameOfTheFIle, encoding='utf-8-sig',) as csv_file:
 
             # Saves the file as a csv.reader object and separates the lines in file to lists of strings which were separated by the delimiter.
             csv_reader = list(csv.reader(csv_file, delimiter=";"))
-            self.DatabaseFiller(csv_reader)
+            check = self.DatabaseFiller(csv_reader)
+            if check == -1:
+                return -1
+            else:
+                return 1
     # When working for XLSX files
-    def getDataWithXlsx(self, NameOfTheFile: str) -> None:
+    def getDataWithXlsx(self, NameOfTheFile: str) -> int:
 
         workbook = load_workbook(NameOfTheFile)
         sheet = workbook.active
@@ -76,25 +69,48 @@ class DataBase:
         data = []
         for row in sheet.iter_rows(values_only=True):
             data.append(list(row))
-        self.DatabaseFiller(data)
+        check = self.DatabaseFiller(data)
+        if check == -1:
+            return -1
+        else:
+            return 1
 
 
-    def DatabaseFiller(self, items: list) -> None:
-        if "Versioon" in items[0]:
-            versionIndex =  items[0].index("Versioon")
+
+    def DatabaseFiller(self, items: list) -> int:
+        startingIndex = self.tableStartingPoint(items)
+        NoneCount = 0
+        if startingIndex == -1:
+            return -1
+        if "Ver" in items[startingIndex]:
+            versionIndex =  items[startingIndex].index("Ver")
         else:
             versionIndex =  None
-        koodIndex = items[0].index("Kood")
-        positsioonIndex = items[0].index("Positsioon")
-        for row in items[1:]:
-            positsions = row[positsioonIndex].split(", ")
-            for positsion in positsions:
-                if versionIndex == None:
-                    item = Data(row[koodIndex], positsion)    
-                else:
-                    item = Data(row[koodIndex], positsion, row[versionIndex])
+        koodIndex = items[startingIndex].index("Code")
+        positsioonIndex = items[startingIndex].index("Ref")
+        for row in items[startingIndex+1:]:
+            if row[koodIndex] == None or row[koodIndex] == "":
+                continue
+            if row[positsioonIndex] == None:
+                item = Data(row[koodIndex], f"None{NoneCount}", row[versionIndex])
+                NoneCount += 1
                 self.add(item)
+            else:
+                positsions = row[positsioonIndex].split(",")
+                for positsion in positsions:
+                    if versionIndex == None:
+                        item = Data(row[koodIndex].strip(), positsion.strip())    
+                    else:
+                        item = Data(row[koodIndex].strip(), positsion.strip(), row[versionIndex])
+                    self.add(item)
+        return 1
 
+
+    def tableStartingPoint(self, array: list) -> int:
+        for i in range(len(array)):
+            if "Code" in array[i]:
+                return i
+        return -1
 
 def magic(file_first: str, file_second: str, output: str) -> int:
 
@@ -116,26 +132,34 @@ def magic(file_first: str, file_second: str, output: str) -> int:
     
     if file_first.split(".")[-1] == "csv":
         file1 = DataBase()
-        file1.getData(file_first)
+        check = file1.getData(file_first)
+        if check == -1:
+            return 404
         fileUnchanged1 = file1.getDataBase()
 
 
         file2 = DataBase()
-        file2.getData(file_second)
+        check = file2.getData(file_second)
+        if check == -1:
+            return 404
         fileUnchanged2 = file2.getDataBase()
     if file_first.split(".")[-1] == "xlsx":
         file1 = DataBase()
-        file1.getDataWithXlsx(file_first)
+        check = file1.getDataWithXlsx(file_first)
+        if check == -1:
+            return 404
         fileUnchanged1 = file1.getDataBase()
 
 
         file2 = DataBase()
-        file2.getDataWithXlsx(file_second)
+        check = file2.getDataWithXlsx(file_second)
+        if check == -1:
+            return 404
         fileUnchanged2 = file2.getDataBase()
 
     positions = list(set((file1.getPositions() + file2.getPositions())))
     positions.sort()
-    rows = [["Kood", "Versioon", "Kood", "Versioon", "Positsioon"]]
+    rows = [["Code", "Version", "Code", "Version", "Ref"]]
 
 
     for position in positions:
@@ -163,10 +187,6 @@ def magic(file_first: str, file_second: str, output: str) -> int:
     data = rows[1:]
     for row_num, row in enumerate(data, start=2):
         for col_num, value in enumerate(row, start=1):
-            try:
-                value = int(value)
-            except ValueError:
-                pass
             cell = sheet.cell(row=row_num, column=col_num)
             cell.value = value
             if col_num in [1, 3]:  # Columns 1 and 3
@@ -192,8 +212,12 @@ def magic(file_first: str, file_second: str, output: str) -> int:
     
     workbook.save(output)
     return 1
+###################################################
+'''
+This is where the GUI implementation begins
 
-
+'''
+###################################################
 def on_entry_click(event):
     if entry1.get() == "Enter file name":
         entry1.delete(0, tk.END)
@@ -232,22 +256,18 @@ def CheckFileReadble() -> bool:
 
 
 
-def button_command():
+def button_command(): # This is where all the work is done when button is pressed
     def close_popup():
         if popup.winfo_exists():  # Check if the popup exists before destroying it
             popup.destroy()
 
-    def close_popup_and_main_window():
+    def close_popup_and_main_window(): # Since otherwise the code didn't work I had to put them into this function.
         close_popup()
         window.destroy()
 
-    
-
-    result = magic(entry1.get(), entry2.get(), entry3.get())
-
     popup = tk.Toplevel()
 
-    if not CheckFileTypes():
+    if not CheckFileTypes(): # Checks if both files are of same type
         popup.title("Type Error")
 
         label = tk.Label(popup, text="PLease make sure that boths files are of same types")
@@ -255,15 +275,26 @@ def button_command():
 
         close_button = tk.Butoon(popup, text="Close", command=close_popup)
 
-    if not CheckFileReadble:
+    if not CheckFileReadble: # Checks if both files are csv or xlsx types
         popup.title("Type Error")
 
         label = tk.Label(popup, text="Files have to be either csv or xlsx")
         label.pack(padx=10, pady=10)
 
         close_button = tk.Butoon(popup, text="Close", command=close_popup)
+    
+    result = magic(entry1.get(), entry2.get(), entry3.get())
 
-    if result == 1:
+    if result == 404:
+        popup.title("Error 404")
+
+        label = tk.label(popup, text="Inside one of the files the table was not found")
+        label.pack(padx=10, pady=10)
+
+        close_button = tk.Button(popup, text="Close", command=close_popup)
+        close_button.pack(pady=10)
+
+    if result == 1: # Magic function returns a number indicating how far did it make towards the end result with 1 indicating it fully completed the job
         popup.title("Success")
 
         label = tk.Label(popup, text=f"Operation was completed successfully and the result was saved to {entry3.get()}")
@@ -272,7 +303,7 @@ def button_command():
         close_button = tk.Button(popup, text="Close", command=close_popup_and_main_window)
         close_button.pack(pady=10)
 
-    elif result == -1:
+    elif result == -1: # -1 indicates that it did not find the first file that was entered into magic function.
         popup.title("Error")
 
         label = tk.Label(popup, text=f"File {entry1.get()} not found!")
@@ -281,7 +312,7 @@ def button_command():
         close_button = tk.Button(popup, text="Close", command=close_popup)
         close_button.pack(pady=10)
 
-    elif result == 0:
+    elif result == 0: # 0 indicates that it did not find the second file that was entered into magic function.
         popup.title("Error")
 
         label = tk.Label(popup, text=f"File {entry2.get()} not found")
@@ -298,7 +329,7 @@ if __name__ == "__main__":
     # Create the main window
  # Create the main window
     window = tk.Tk()
-    window.title("Difference finder v1.2")
+    window.title("Difference finder v1.6")
     window.geometry("300x200")
 
     # Create the first text field (Entry widget) with default text
@@ -316,17 +347,15 @@ if __name__ == "__main__":
     entry2.bind("<FocusIn>", on_entry2_click)
     entry2.bind("<FocusOut>", on_entry2_leave)
 
-    # Filed 3
-
+    
+    # Create the third text field with default text
     entry3 = tk.Entry(window)
-    entry3.insert(0, "Enter output file name")
+    entry3.insert(0, "Enter output file name") # Set default text
 
     entry3.bind("<FocusIn>", on_entry3_click)
     entry3.bind("<FocusOut>", on_entry3_leave)
 
-
-    # message box for completing the job
-
+    
     button = tk.Button(window, text="Show differences", command=button_command)
 
     entry1.pack()
